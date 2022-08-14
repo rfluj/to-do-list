@@ -1,20 +1,63 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 
-export default function App() {
+import HomeScreen from './src/screens/HomeScreen';
+import AddTaskScreen from './src/screens/AddTaskScreen'
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {DatabaseConnection} from "./src/database/database-connection"
+
+const db = DatabaseConnection.getConnection();
+
+
+const Stack = createNativeStackNavigator();
+
+const MyStack = () => {
+  console.log(100000000)
+  React.useEffect(() => {
+    db.transaction(function (txn) {
+      txn.executeSql(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'",
+        [],
+        function (tx, res) {
+          console.log('item:', res.rows.length);
+          if (res.rows.length == 0) {
+            txn.executeSql('DROP TABLE IF EXISTS tasks', []);
+            txn.executeSql(
+              'CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT, task_title VARCHAR(100) NOT NULL, task_description TEXT, task_time TEXT NOT NULL, task_date TEXT NOT NULL, is_complete BOOLEAN DEFAULT FALSE NOT NULL, alarm_me BOOLEAN DEFAULT FALSE NOT NULL )',
+              []
+            );
+          }
+        }
+      );
+    });
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen 
+        name="AddTask"
+        component={AddTaskScreen}
+        options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Activity"
+          component={HomeScreen}
+          options={{headerShown: false}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+
+export default MyStack
+
+
+
+

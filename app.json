@@ -3,6 +3,7 @@
     "name": "to-do-list",
     "slug": "to-do-list",
     "version": "1.0.0",
+    "sdkVersion": "45.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,6 +22,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.companyname.appname",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
