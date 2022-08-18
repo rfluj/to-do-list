@@ -112,6 +112,7 @@ export default function AddTaskScreen({route, navigation}) {
             date: date, // in 60 secs
             allowWhileIdle: false, // (optional) set notification to work while on doze, default: false
             repeatTime: 1, // (optional) Increment of configured repeatType. Check 'Repeating Notifications' section for more info.
+            playSound: true,
         });
         return alarmId
     }

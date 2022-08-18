@@ -5,17 +5,70 @@ import { CheckBox } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/Entypo';
 import { db } from "../../App";
 
+import PushNotification, {Importance, notifi} from "react-native-push-notification";
+// PushNotification.deleteChannel('rf')
+// PushNotification.deleteChannel('rfg')
+// PushNotification.deleteChannel('rf_luj')
+
+
+PushNotification.createChannel({
+    channelId: "rf_luj", // (required)
+    channelName: "My channel", // (required)
+//   channelDescription: "A channel to categorise your notifications", // (optional) default: undefined.
+    playSound: true, // (optional) default: true
+    soundName: "default", // (optional) See `soundName` parameter of `localNotification` function
+//   importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
+    vibrate: true, // (optional) default: true. Creates the default vibration pattern if true.
+},
+(created) => console.log(`createChannel returned '${created}'`) // (optional) callback returns whether the channel was created, false means it already existed.
+);
+
+
+
 
 export default function Task({props, navigation, changeTaskDel}) {
     const [complete, setComplete] = useState(props.isComplete)
     let changeComplete = () => {
+        if (!complete) {
+            if (props.alarm_id) {
+                PushNotification.cancelLocalNotification(props.alarm_id)
+            }
+        }
+        else {
+            if (props.alarmMe) {
+                const [year, month, day] = props.date.split('-');
+                const [hours, minutes] = props.time.split(':');
+                let date = new Date(+year, +month - 1, +day, +hours, +minutes)
+                let now = new Date()
+                let alarmId = parseInt((now.getTime() - 1660862944637)/1000)
+                PushNotification.localNotificationSchedule({
+                    id: alarmId,
+                    channelId: 'rf_luj',
+                    title: props.title,
+                    message: "do you your task?", // (required)
+                    date: date, // in 60 secs
+                    allowWhileIdle: false, // (optional) set notification to work while on doze, default: false
+                    repeatTime: 1, // (optional) Increment of configured repeatType. Check 'Repeating Notifications' section for more info.
+                    playSound: true,
+                });
+                let id = props.id
+                db.transaction(function (tx) {
+                    tx.executeSql(
+                        'UPDATE tasks SET alarm_id=? WHERE id=?',
+                        [alarmId, id],
+                        (t, res) => {
+                            console.log('alarm set.')
+                        }
+                    )
+                })
+            }
+        }
         let id = props.id
         db.transaction(function (txn) {
             txn.executeSql(
                 'UPDATE tasks SET is_complete=? WHERE id=?',
                 [!complete, id],
                 function (tx, res) {
-                    // console.log('pppppppppppppppp')
                     setComplete(!complete)
                 }
             );
@@ -23,6 +76,9 @@ export default function Task({props, navigation, changeTaskDel}) {
     }
     const [visible, setVisible] = React.useState(false)
     let deleteTask = () => {
+        if (props.alarm_id) {
+            PushNotification.cancelLocalNotification(props.alarm_id)
+        }
         db.transaction((tx) => {
           tx.executeSql(
             'DELETE FROM  tasks where id=?',
