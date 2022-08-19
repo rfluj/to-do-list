@@ -7,8 +7,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {DatabaseConnection} from "./src/database/database-connection"
 import ActivityScreen from './src/screens/ActivityScreen';
 
+import { LogBox } from 'react-native';
 
-
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 
 
 
@@ -63,18 +66,6 @@ const MyStack = () => {
 
 
 export default MyStack
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
